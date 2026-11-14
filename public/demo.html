@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MediReminder — Demo</title>
+  <meta name="description" content="Preview the MediReminder medicine schedule and adherence dashboard." />
+  <meta name="theme-color" content="#4f46e5" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/demo.css" />
+</head>
+<body>
+  <div class="app demo-app">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">M</span> MediReminder</div>
+      <nav class="nav" aria-label="Demo navigation">
+        <a href="#overview" data-tab="overview" class="active">Overview</a>
+        <a href="#medicines" data-tab="medicines">Medicines</a>
+        <a href="#history" data-tab="history">History</a>
+        <a href="#caregivers" data-tab="caregivers">Caregivers</a>
+      </nav>
+      <div class="demo-side-note">
+        <span class="chip primary">DEMO MODE</span>
+        <p class="small muted mt">Sample data only. No account or database is connected.</p>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="page-title">Overview</h1>
+          <div class="date" id="demo-date"></div>
+        </div>
+        <div class="top-actions">
+          <span class="chip primary demo-chip">Sample dashboard</span>
+          <button class="icon-btn demo-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode">Aa</button>
+          <div class="avatar" aria-label="Sample user">A</div>
+        </div>
+      </header>
+
+      <div class="demo-banner" role="note">
+        <b>Project preview</b>
+        <span>This demo uses fictional sample data. Dose actions only change this page and are not saved.</span>
+      </div>
+
+      <main class="view demo-view">
+        <section class="demo-panel active" data-panel="overview">
+          <div class="card hero mb">
+            <div class="ring" aria-label="1 of 3 doses taken">
+              <svg width="132" height="132" viewBox="0 0 132 132" aria-hidden="true">
+                <circle cx="66" cy="66" r="57" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="11"/>
+                <circle class="demo-ring-value" cx="66" cy="66" r="57" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-dasharray="358.14" stroke-dashoffset="238.76"/>
+              </svg>
+              <div class="center"><div><b id="dose-count">1/3</b><span>taken today</span></div></div>
+            </div>
+            <div class="demo-hero-copy">
+              <span class="demo-kicker">YOUR DAILY ROUTINE</span>
+              <h2>Good morning, Asha</h2>
+              <p><b id="dose-summary">2 doses left today.</b> Keep your routine on track.</p>
+              <div class="next">Next up: Metformin at 1:00 PM</div>
+            </div>
+          </div>
+
+          <div class="stats mb">
+            <div class="card stat-card"><div class="stat-ico demo-stat-purple">%</div><div class="stat"><span class="label">Adherence</span><span class="value">92%</span><span class="sub">last 30 days</span></div></div>
+            <div class="card stat-card"><div class="stat-ico demo-stat-gold">8</div><div class="stat"><span class="label">Current streak</span><span class="value">8 days</span><span class="sub">great consistency</span></div></div>
+            <div class="card stat-card"><div class="stat-ico demo-stat-green">+</div><div class="stat"><span class="label">On-time rate</span><span class="value">94%</span><span class="sub">last 30 days</span></div></div>
+            <div class="card stat-card"><div class="stat-ico demo-stat-red">!</div><div class="stat"><span class="label">Missed doses</span><span class="value">2</span><span class="sub">last 30 days</span></div></div>
+          </div>
+
+          <div class="dash-grid">
+            <div class="card">
+              <div class="card-head"><h3>Today's schedule</h3><span class="chip">3 doses</span></div>
+              <div class="timeline" id="demo-timeline">
+                <div class="dose done" data-dose="morning">
+                  <div class="time"><b>8:00</b><span>AM</span></div>
+                  <div class="pill-dot" style="background:#4f46e5">D</div>
+                  <div class="grow"><h4>Vitamin D</h4><div class="meta">1000 IU · with breakfast</div></div>
+                  <div class="demo-dose-controls"><span class="chip ok" data-dose-status>Taken</span></div>
+                </div>
+                <div class="dose due" data-dose="afternoon">
+                  <div class="time"><b>1:00</b><span>PM</span></div>
+                  <div class="pill-dot" style="background:#06b6d4">M</div>
+                  <div class="grow"><h4>Metformin</h4><div class="meta">500 mg · after lunch</div></div>
+                  <div class="demo-dose-controls"><span class="chip primary" data-dose-status>Upcoming</span><button class="btn ok sm" type="button" data-dose-action="taken">Mark taken</button><button class="btn sm" type="button" data-dose-action="snooze">Snooze</button></div>
+                </div>
+                <div class="dose" data-dose="evening">
+                  <div class="time"><b>8:00</b><span>PM</span></div>
+                  <div class="pill-dot" style="background:#f59e0b">O</div>
+                  <div class="grow"><h4>Omega 3</h4><div class="meta">1 capsule · with dinner</div></div>
+                  <div class="demo-dose-controls"><span class="chip primary" data-dose-status>Upcoming</span><button class="btn ok sm" type="button" data-dose-action="taken">Mark taken</button><button class="btn sm" type="button" data-dose-action="snooze">Snooze</button></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="demo-side-column">
+              <div class="card mb">
+                <div class="card-head"><h3>My medicines</h3><button class="btn sm" type="button" data-open-tab="medicines">View all</button></div>
+                <div class="upcoming-item"><span class="swatch" style="background:#4f46e5"></span><div class="grow"><b>Vitamin D</b><div class="muted small">1000 IU · daily</div></div></div>
+                <div class="upcoming-item"><span class="swatch" style="background:#06b6d4"></span><div class="grow"><b>Metformin</b><div class="muted small">500 mg · twice daily</div></div></div>
+                <div class="upcoming-item"><span class="swatch" style="background:#f59e0b"></span><div class="grow"><b>Omega 3</b><div class="muted small">1 capsule · daily</div></div></div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h3>Weekly progress</h3><span class="chip ok">Looking good</span></div>
+                <div class="demo-week" aria-label="Sample weekly adherence chart">
+                  <div><i style="height:78%"></i><small>M</small></div><div><i style="height:92%"></i><small>T</small></div>
+                  <div><i style="height:84%"></i><small>W</small></div><div><i style="height:100%"></i><small>T</small></div>
+                  <div><i style="height:88%"></i><small>F</small></div><div><i style="height:96%"></i><small>S</small></div>
+                  <div><i style="height:68%"></i><small>S</small></div>
+                </div>
+                <p class="small muted demo-chart-caption">Sample adherence over the past week</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="demo-panel" data-panel="medicines">
+          <div class="card mb"><div class="card-head"><div><h3>Medicine list</h3><p class="muted small mt">A sample schedule for the demo profile.</p></div><span class="chip primary">3 active</span></div>
+            <div class="demo-medicine-list">
+              <article class="demo-medicine"><span class="pill-dot" style="background:#4f46e5">D</span><div class="grow"><h4>Vitamin D</h4><p class="muted small">1000 IU · Daily at 8:00 AM</p></div><span class="chip ok">Active</span></article>
+              <article class="demo-medicine"><span class="pill-dot" style="background:#06b6d4">M</span><div class="grow"><h4>Metformin</h4><p class="muted small">500 mg · Daily at 1:00 PM and 8:00 PM</p></div><span class="chip ok">Active</span></article>
+              <article class="demo-medicine"><span class="pill-dot" style="background:#f59e0b">O</span><div class="grow"><h4>Omega 3</h4><p class="muted small">1 capsule · Daily at 8:00 PM</p></div><span class="chip ok">Active</span></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="demo-panel" data-panel="history">
+          <div class="stats mb">
+            <div class="card stat-card"><div class="stat"><span class="label">Adherence</span><span class="value">92%</span><span class="sub">last 30 days</span></div></div>
+            <div class="card stat-card"><div class="stat"><span class="label">Doses taken</span><span class="value">82</span><span class="sub">last 30 days</span></div></div>
+            <div class="card stat-card"><div class="stat"><span class="label">On time</span><span class="value">94%</span><span class="sub">within 30 minutes</span></div></div>
+            <div class="card stat-card"><div class="stat"><span class="label">Current streak</span><span class="value">8 days</span><span class="sub">sample data</span></div></div>
+          </div>
+          <div class="card"><div class="card-head"><h3>Adherence this week</h3><span class="chip">Sample</span></div>
+            <div class="demo-week demo-week-large" aria-label="Sample weekly adherence chart">
+              <div><i style="height:78%"></i><small>Mon</small></div><div><i style="height:92%"></i><small>Tue</small></div>
+              <div><i style="height:84%"></i><small>Wed</small></div><div><i style="height:100%"></i><small>Thu</small></div>
+              <div><i style="height:88%"></i><small>Fri</small></div><div><i style="height:96%"></i><small>Sat</small></div>
+              <div><i style="height:68%"></i><small>Sun</small></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="demo-panel" data-panel="caregivers">
+          <div class="card demo-caregiver"><div class="demo-caregiver-avatar">R</div><div class="grow"><h3>Ravi Reddy</h3><p class="muted mt">Sample caregiver profile</p><p class="small muted mt">Caregivers can follow a patient's schedule and adherence in the full app.</p></div><span class="chip primary">Sample</span></div>
+        </section>
+      </main>
+      <footer class="demo-footer">MediReminder is a project demo using fictional data. It is not medical advice.</footer>
+    </div>
+  </div>
+  <nav class="bottom-nav demo-bottom-nav" aria-label="Demo navigation">
+    <a href="#overview" data-tab="overview" class="active">Overview</a>
+    <a href="#medicines" data-tab="medicines">Meds</a>
+    <a href="#history" data-tab="history">History</a>
+    <a href="#caregivers" data-tab="caregivers">Care</a>
+  </nav>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="/js/ui.js"></script>
+  <script src="/js/demo.js"></script>
+</body>
+</html>
