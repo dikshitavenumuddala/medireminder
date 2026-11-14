@@ -4,35 +4,61 @@ const config = require('./config');
 const COLLECTIONS = ['users', 'medicines', 'reminders', 'caregivers', 'notifications'];
 let client;
 let database;
+let initPromise;
 
 async function init() {
-  client = new MongoClient(config.mongo.uri, { serverSelectionTimeoutMS: 5000 });
-  await client.connect();
-  database = client.db(config.mongo.database);
-  await database.command({ ping: 1 });
+  if (database) return database;
+  if (!initPromise) {
+    const pending = (async () => {
+      const nextClient = new MongoClient(config.mongo.uri, {
+        serverSelectionTimeoutMS: 5000,
+        maxPoolSize: 10,
+        minPoolSize: 0,
+      });
+      try {
+        await nextClient.connect();
+        const nextDatabase = nextClient.db(config.mongo.database);
+        const getCollection = (name) => nextDatabase.collection(name);
+        await nextDatabase.command({ ping: 1 });
 
-  await Promise.all([
-    collection('users').createIndex({ email: 1 }, { unique: true }),
-    collection('users').createIndex({ invite_code: 1 }, { unique: true, sparse: true }),
-    collection('medicines').createIndex({ user_id: 1, is_active: 1, deleted_at: 1 }),
-    collection('reminders').createIndex({ medicine_id: 1, scheduled_time: 1 }, { unique: true }),
-    collection('reminders').createIndex({ user_id: 1, scheduled_time: 1 }),
-    collection('reminders').createIndex({ status: 1, due_at: 1 }),
-    collection('caregivers').createIndex({ user_id: 1, caregiver_user_id: 1 }, { unique: true }),
-    collection('caregivers').createIndex({ caregiver_user_id: 1 }),
-    collection('notifications').createIndex({ user_id: 1, is_read: 1, id: -1 }),
-  ]);
+        await Promise.all([
+          getCollection('users').createIndex({ email: 1 }, { unique: true }),
+          getCollection('users').createIndex({ invite_code: 1 }, { unique: true, sparse: true }),
+          getCollection('medicines').createIndex({ user_id: 1, is_active: 1, deleted_at: 1 }),
+          getCollection('reminders').createIndex({ medicine_id: 1, scheduled_time: 1 }, { unique: true }),
+          getCollection('reminders').createIndex({ user_id: 1, scheduled_time: 1 }),
+          getCollection('reminders').createIndex({ status: 1, due_at: 1 }),
+          getCollection('caregivers').createIndex({ user_id: 1, caregiver_user_id: 1 }, { unique: true }),
+          getCollection('caregivers').createIndex({ caregiver_user_id: 1 }),
+          getCollection('notifications').createIndex({ user_id: 1, is_read: 1, id: -1 }),
+        ]);
 
-  const counters = collection('counters');
-  for (const name of COLLECTIONS) {
-    const last = await collection(name).find().sort({ id: -1 }).limit(1).next();
-    await counters.updateOne(
-      { _id: name },
-      { $max: { seq: last ? last.id : 0 } },
-      { upsert: true }
-    );
+        const counters = getCollection('counters');
+        for (const name of COLLECTIONS) {
+          const last = await getCollection(name).find().sort({ id: -1 }).limit(1).next();
+          await counters.updateOne(
+            { _id: name },
+            { $max: { seq: last ? last.id : 0 } },
+            { upsert: true }
+          );
+        }
+
+        client = nextClient;
+        database = nextDatabase;
+        return database;
+      } catch (error) {
+        await nextClient.close();
+        throw error;
+      }
+    })();
+    initPromise = pending;
   }
-  return database;
+  const pending = initPromise;
+  try {
+    return await pending;
+  } finally {
+    if (initPromise === pending) initPromise = null;
+  }
 }
 
 function getDatabase() {
@@ -103,9 +129,10 @@ async function removeMany(name, filter) {
 }
 
 async function close() {
-  if (client) await client.close();
+  const activeClient = client;
   client = null;
   database = null;
+  if (activeClient) await activeClient.close();
 }
 
 module.exports = {

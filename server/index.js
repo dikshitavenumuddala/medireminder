@@ -1,4 +1,5 @@
 const path = require('path');
+const { timingSafeEqual } = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const config = require('./config');
@@ -20,7 +21,28 @@ app.use((_req, res, next) => {
 });
 
 // ---- API ----
+app.use('/api', async (_req, _res, next) => {
+  try {
+    await db.init();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get('/api/health', (_req, res) => res.json({ ok: true, time: new Date().toISOString() }));
+app.get('/api/cron', async (req, res, next) => {
+  const provided = Buffer.from(req.get('authorization') || '');
+  const expected = Buffer.from(`Bearer ${config.cronSecret}`);
+  const authorized = config.cronSecret && provided.length === expected.length && timingSafeEqual(provided, expected);
+  if (!authorized) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    await scheduler.tick();
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/medicines', require('./routes/medicines'));
 app.use('/api/reminders', require('./routes/reminders'));

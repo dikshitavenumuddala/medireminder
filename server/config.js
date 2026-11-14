@@ -10,6 +10,7 @@ module.exports = {
     uri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017',
     database: process.env.MONGODB_DB || 'medireminder',
   },
+  cronSecret: process.env.CRON_SECRET || '',
   scheduler: {
     intervalSec: num(process.env.SCHEDULER_INTERVAL_SEC, 30),
     missedAfterMin: num(process.env.MISSED_AFTER_MIN, 60),

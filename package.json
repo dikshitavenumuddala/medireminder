@@ -2,7 +2,7 @@
   "name": "medireminder",
   "version": "1.0.0",
   "description": "MediReminder - Medicine Reminder Web App (Node.js, Express, MongoDB, vanilla JS frontend)",
-  "main": "server/index.js",
+  "main": "index.js",
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",

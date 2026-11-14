@@ -100,6 +100,7 @@ async function tick() {
     await markMissed(now);
   } catch (error) {
     console.error('[scheduler] tick failed:', error.message);
+    throw error;
   } finally {
     running = false;
   }
@@ -107,8 +108,9 @@ async function tick() {
 
 function start() {
   if (timer) return;
-  tick();
-  timer = setInterval(tick, config.scheduler.intervalSec * 1000);
+  const run = () => tick().catch(() => {});
+  run();
+  timer = setInterval(run, config.scheduler.intervalSec * 1000);
   console.log(`[scheduler] running every ${config.scheduler.intervalSec}s (missed after ${config.scheduler.missedAfterMin} min)`);
 }
 
