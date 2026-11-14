@@ -1,0 +1,20 @@
+# One-command start:  docker compose up --build   ->  http://localhost:3000
+services:
+  db:
+    image: mongo:7
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      retries: 20
+    volumes: [dbdata:/data/db]
+  app:
+    build: .
+    ports: ["3000:3000"]
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      MONGODB_URI: mongodb://db:27017
+      MONGODB_DB: medireminder
+      JWT_SECRET: change-me-in-production
+volumes:
+  dbdata:
