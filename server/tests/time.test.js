@@ -2,6 +2,7 @@
 const assert = require('assert');
 const { zonedToUtc, localDateStr, localTimeStr, addDays, daysBetween, dayOfWeek, toDb, toIso, isValidTimezone } = require('../utils/time');
 const { appliesOn, occurrencesOn, validateMedicine } = require('../utils/schedule');
+const { validateProductionConfig } = require('../config');
 
 let passed = 0;
 const test = (name, fn) => {
@@ -88,6 +89,23 @@ test('rejects bad input', () => {
   bad({ repeatPattern: { type: 'weekdays', days: [] } });
   bad({ repeatPattern: { type: 'interval', interval: 1 } });
   bad({ color: 'red' });
+});
+
+console.log('production configuration');
+test('requires separate strong secrets and a MongoDB URI in production', () => {
+  const production = {
+    NODE_ENV: 'production',
+    VERCEL: '1',
+    JWT_SECRET: 'a'.repeat(32),
+    CRON_SECRET: 'b'.repeat(32),
+    MONGODB_URI: 'mongodb+srv://example.invalid/medireminder',
+  };
+  assert.doesNotThrow(() => validateProductionConfig(production));
+  assert.throws(() => validateProductionConfig({ ...production, JWT_SECRET: 'short' }), /JWT_SECRET/);
+  assert.throws(() => validateProductionConfig({ ...production, CRON_SECRET: production.JWT_SECRET }), /must be different/);
+  assert.throws(() => validateProductionConfig({ ...production, MONGODB_URI: '' }), /MONGODB_URI/);
+  assert.throws(() => validateProductionConfig({ ...production, MONGODB_URI: 'mongodb://localhost:27017' }), /cannot use localhost on Vercel/);
+  assert.throws(() => validateProductionConfig({ ...production, MONGODB_URI: 'not-a-mongodb-uri' }), /valid MongoDB connection URI/);
 });
 
 console.log(`\n${passed} tests passed`);

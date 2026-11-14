@@ -19,24 +19,27 @@ Set `MONGODB_URI` and `MONGODB_DB` in `.env` if your local MongoDB uses a non-de
 
 Demo data for the video: `npm run seed` → patient `asha@demo.com`, caregiver `ravi@demo.com`, password `demo123`.
 
-**Docker alternative:** `docker compose up --build` (starts MongoDB + app).
+**Docker alternative:** copy `.env.example` to `.env`, set distinct random values of at least 32 characters for `JWT_SECRET` and `CRON_SECRET`, then run `docker compose up --build` (starts MongoDB + app). The container runs as a non-root user and the Docker build excludes local environment files. Put a TLS reverse proxy in front of port 3000 before exposing it publicly.
 Tests for the scheduling logic: `npm test`.
 
 ## Deploy to Vercel
 
-1. Create a MongoDB Atlas cluster and database user. Configure Atlas Network Access to allow connections from your Vercel deployment.
-2. Import this GitHub repository into Vercel with the repository root as the project root.
-3. Add these Production environment variables in Vercel:
-   - `MONGODB_URI`: the Atlas connection string
+This app can use a MongoDB database on your own computer through a secure TCP tunnel, but Vercel cannot connect to `localhost` directly. The computer and tunnel must remain online for the deployed app to work. A tunnel also makes your health-data database reachable from the internet, so a managed database is safer and more reliable for production.
+
+1. Keep MongoDB bound to localhost and require authentication. Create a dedicated MongoDB user limited to the `medireminder` database; do not expose MongoDB's port directly to the internet or disable authentication.
+2. Set up a tunnel that securely forwards TCP traffic to your local MongoDB port, with TLS and access restrictions. Use its MongoDB-compatible connection URI as `MONGODB_URI`; do not use a `localhost` or `127.0.0.1` URI in Vercel. Keep the computer, MongoDB, and tunnel running.
+3. Import this repository into Vercel and use the repository root (the folder containing `package.json`) as the project root.
+4. Add these Production environment variables in Vercel:
+   - `MONGODB_URI`: the authenticated, TLS-protected tunnel URI
    - `MONGODB_DB`: `medireminder`
-   - `JWT_SECRET`: a long, random secret
-   - `CRON_SECRET`: a separate long, random secret
+   - `JWT_SECRET`: a random secret of at least 32 characters
+   - `CRON_SECRET`: a different random secret of at least 32 characters
    - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and `MAIL_FROM` if e-mail delivery is needed
-4. Deploy. Vercel serves `public/` assets and runs the Express app as a Function.
+5. Deploy. Vercel serves `public/` assets from its CDN and runs the Express app as a Function.
 
-Generate secret values with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Do not use the example secrets in production. Vercel-hosted deployments need a reachable MongoDB Atlas URI; the local MongoDB address in `.env.example` is only for local development.
+Generate each secret independently with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Do not use development or example secrets in production. Production startup fails if the database URI or secure secrets are missing.
 
-Reminder processing needs a scheduled request to `GET /api/cron` with the header `Authorization: Bearer <CRON_SECRET>`. Vercel Hobby only supports daily Cron Jobs, so configure an external scheduler to call this endpoint every minute. On Pro or Enterprise, you can instead add a Vercel Cron entry for `/api/cron` with schedule `* * * * *`. Vercel's built-in Cron Jobs run only on Production deployments.
+`vercel.json` configures a daily `/api/cron` call so the project can deploy on Vercel Hobby. The app needs reminder processing every minute for timely notifications. Hobby accounts only allow daily cron schedules; configure an external scheduler to call `GET /api/cron` once per minute with `Authorization: Bearer <CRON_SECRET>`. On Pro or Enterprise, change the `crons` schedule in `vercel.json` to `* * * * *` for built-in minute-by-minute processing. Cron jobs run only for Production deployments. The endpoint rejects requests without the configured secret.
 
 ## Features
 **Patient:** register/login · add/edit/pause/delete medicines (name, dosage, multiple times/day, start/end date,

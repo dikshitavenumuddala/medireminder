@@ -2,6 +2,7 @@
 services:
   db:
     image: mongo:7
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 5s
@@ -9,12 +10,29 @@ services:
     volumes: [dbdata:/data/db]
   app:
     build: .
+    init: true
+    restart: unless-stopped
     ports: ["3000:3000"]
     depends_on:
       db: { condition: service_healthy }
     environment:
+      NODE_ENV: production
+      PORT: 3000
       MONGODB_URI: mongodb://db:27017
-      MONGODB_DB: medireminder
-      JWT_SECRET: change-me-in-production
+      MONGODB_DB: ${MONGODB_DB:-medireminder}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env to a unique 32+ character secret}
+      CRON_SECRET: ${CRON_SECRET:?Set CRON_SECRET in .env to a different 32+ character secret}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-MediReminder <no-reply@medireminder.local>}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 volumes:
   dbdata:
